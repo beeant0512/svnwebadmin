@@ -18,15 +18,18 @@ class Svn
     {
         $handle = fopen($filename, "r");//读取二进制文件时，需要将第二个参数设置成'rb'
         //通过filesize获得文件大小，将整个文件一下子读到一个字符串中
-        $contents = fread($handle, filesize($filename));
-        $contents = str_replace("!", "", $contents);
-        fclose($handle);
-        $handle = fopen($filename, "w");//读取二进制文件时，需要将第二个参数设置成'rb'
-        fwrite($handle, $contents);
-        fclose($handle);
+        if(filesize($filename) != 0){
+            $contents = fread($handle, filesize($filename));
+            $contents = str_replace("!", "", $contents);
+            fclose($handle);
+            $handle = fopen($filename, "w");//读取二进制文件时，需要将第二个参数设置成'rb'
+            fwrite($handle, $contents);
+            fclose($handle);
 
-        $file_array = parse_ini_file($filename, true);
-        return $file_array;
+            $file_array = parse_ini_file($filename, true);
+            return $file_array;
+        }
+       return array();
     }
 
     public function get_users()
@@ -118,7 +121,7 @@ class Svn
         exec('htpasswd -b F:\Repositories\htpasswd demo 123456' . $username . ' ' . $password);
     }
 
-    public function isRepository($path)
+    public function is_repository($path)
     {
         return is_dir($path);
     }
@@ -152,7 +155,7 @@ class Svn
             }
 
             $absolute_path = $basePath . "\\" . $file;
-            if (self::isRepository($absolute_path)) {
+            if (self::is_repository($absolute_path)) {
                 $ret[] = $file;
             }
         }
@@ -198,28 +201,37 @@ class Svn
     public function get_repo_tree($repo_name)
     {
         // $command = $this->svnlook . ' tree ' .  $this->getRepoFullPath($repo_name);
-        $command = 'svnlook tree ' . $this->getRepoFullPath($repo_name);
+        $command = 'svnlook tree ' . $this->get_repo_full_path($repo_name);
         exec($command, $res);
-        $tree = array();
-//        foreach ($res as $index => $folder) {
-//            $level = substr_count($folder, ' ');
-//            $tree[$folder] = $folder;
-//            foreach ($res as $index2 => $folder2) {
-//                $level2 = substr_count($folder2, ' ');
-//                var_dump($folder);
-//                var_dump($folder2);
-//                if($folder == $folder2 || $level2 == $level){
-//                    continue;
-//                }
-//
-//                $folder[trim($folder2)] = trim($folder2);
-//            }
-//            $pre_level = $level;
-//        }
-        return $res;
+        $res_ary = array();
+        foreach ($res as $index => $folder) {
+            $level = substr_count($folder, ' ');
+            $folder_name = trim($folder);
+            $source_folder_name =$folder;
+            $folder = new stdClass();
+            $folder->level = $level;
+            $folder->name = $source_folder_name;
+            $folder->fullpath = $folder_name;
+            $folder->child = array();
+            array_push($res_ary, $folder);
+        }
+        foreach ($res_ary as $index => $folder_info) {
+            $in_loop = true;
+            foreach ($res_ary as $index2 => $sub_folder_info) {
+                if ($folder_info->level == $sub_folder_info->level && $index2 > $index) {
+                    break;
+                }
+                if ($sub_folder_info->level == $folder_info->level + 1 && $index2 > $index) {
+                    $sub_folder_info->fullpath = $folder_info->fullpath . $sub_folder_info->fullpath;
+                    array_push($folder_info->child, $sub_folder_info);
+                }
+            }
+        }
+        return $res_ary[0];
     }
 
-    private function getRepoFullPath($repo_name)
+    private
+    function get_repo_full_path($repo_name)
     {
         return $this->config['repositories_path'] . '\\' . $repo_name;
     }

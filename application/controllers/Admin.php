@@ -45,6 +45,7 @@ class Admin extends CI_Controller
     public function authority(){
         $repo_name = $this->input->get('repo');
         $repo_tree = $this->svn->get_repo_tree($repo_name);
+        $data['users'] = $this->svn->get_users();
         $data['svn_server'] = $this->svn_server;
         $data['repo_tree'] = $repo_tree;
         $data['repo_name'] = $repo_name;

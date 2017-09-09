@@ -2,7 +2,8 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 <?php $this->load->view('template/header.php'); ?>
-    <h1 class="orange"><?php echo $repo_name ?> 目录列表 <a class="f-right" href="<?php echo site_url('admin') ?>">返回</a></h1>
+    <h1 class="orange"><?php echo $repo_name ?> 目录列表 <a class="f-right" href="<?php echo site_url('admin') ?>">返回</a>
+    </h1>
     <div id="body">
         <table class="ui celled table">
             <thead>
@@ -12,20 +13,45 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             </tr>
             </thead>
             <tbody>
-            <?php foreach ($repo_tree as $index => $folder) { ?>
+            <?php
+            function tr($svn_server, $repo_name, $folder)
+            {
+                ?>
                 <tr>
                     <td>
-                        <!--                        <a href="-->
-                        <?php //echo $svn_server . $repo_name .'/'.  $folder ?><!--" target="_blank">-->
-                        <?php echo str_replace(' ', '&nbsp;&nbsp;', $folder) ?>
-                        <!--                        </a>-->
+                        <a href="
+                            <?php echo $svn_server . $repo_name . $folder->fullpath ?>" target="_blank">
+                            <?php echo str_replace(' ', '&nbsp;&nbsp;', $folder->name) ?>
+                        </a>
                     </td>
                     <td>
-                        <button class="ui button set_authority">设置权限</button>
-                        <button class="ui button view_authority">查看权限用户</button>
+                        <button class="ui button set_authority"
+                                data-folder="<?php echo $repo_name . ":" . $folder->fullpath ?>">设置权限
+                        </button>
+                        <button class="ui button view_authority"
+                                data-folder="<?php echo $repo_name . ":" . $folder->fullpath ?>">查看权限用户
+                        </button>
                     </td>
                 </tr>
-            <?php } ?>
+                <?php
+            } ?>
+            <?php
+            function iteration($svn_server, $repo_name, $folder)
+            {
+                if (sizeof($folder->child) == 0) {
+                    tr($svn_server, $repo_name, $folder);
+                } else {
+                    tr($svn_server, $repo_name, $folder);
+                    foreach ($folder->child as $index => $child) {
+                        iteration($svn_server, $repo_name, $child);
+                    }
+                }
+            }
+
+            iteration($svn_server, $repo_name, $repo_tree);
+            ?>
+
+            </tbody>
         </table>
     </div>
 
@@ -35,16 +61,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
             设置权限
         </div>
         <div class="content">
-            <form class="ui large form" id="create_repository_form">
-                <div class="ui stacked segment">
-                    <div class="field">
-                        <div class="ui left icon input">
-                            <i class="cube icon"></i>
-                            <input type="text" name="repo_name" placeholder="库名称">
-                        </div>
-                    </div>
+            <form class="ui large form" id="authority_user_form">
+                <div class="field">
+                    <label>SVN账户</label>
+                    <select name="users" id="authority_user_select" multiple="" class="ui dropdown">
+                        <option value=""> -- 请选择SVN账户 --</option>
+                        <?php foreach ($users as $user) { ?>
+                            <option value="<?php echo $user ?>"><?php echo $user ?></option>
+                        <?php } ?>
+                    </select>
                 </div>
-
                 <div class="ui error message"></div>
             </form>
         </div>
@@ -66,7 +92,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <script>
         (function () {
             $(document).ready(function () {
-                var $form = $('#create_repository_form');
+                $('select.dropdown').dropdown();
+                var $form = $('#authority_user_form');
                 $form
                     .form({
                         fields: {
@@ -75,8 +102,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     });
 
                 $('.set_authority').on('click', function () {
-                    var created = false;
-                    $('#create_repository_modal')
+                    var created = false,
+                        folder = $(this).data('folder');
+                    $modal = $('#create_repository_modal');
+                    $modal.data(folder);
+                    $modal
                         .modal({
                             closable: false,
                             onApprove: function () {
@@ -85,8 +115,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     $.ajax({
                                         method: 'post',
                                         async: false,
-                                        url: '<?php echo site_url('admin/create_repo')?>',
-                                        data: {repo: $form.form('get value', 'repo_name')},
+                                        url: '<?php echo site_url('admin/set_user_authority')?>',
+                                        data: {users: $form.form('get value', 'users'), folder: folder},
                                         success: function () {
                                             created = true;
                                             closable = true;
@@ -96,7 +126,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 return closable;
                             },
                             onHide: function () {
-                                if(created){
+                                if (created) {
                                     window.location.reload();
                                 }
                             }

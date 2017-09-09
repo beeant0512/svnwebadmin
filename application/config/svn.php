@@ -103,9 +103,9 @@ $config['svn']['svnadmin'] = 'svnadmin';
  */
 $config['svn']['svnlook'] = 'svnlook';
 
-$config['svn']['repositories_path'] = 'F:\\Repositories';
-$config['svn']['htpasswd_file'] = 'F:\\Repositories\\htpasswd';
-$config['svn']['group_file'] = 'F:\\Repositories\\groups.conf';
+$config['svn']['repositories_path'] = 'E:\\Repositories';
+$config['svn']['htpasswd_file'] = 'E:\\Repositories\\htpasswd';
+$config['svn']['group_file'] = 'E:\\Repositories\\groups.conf';
 $config['svn']['authz_file'] = 'VisualSVN-SvnAuthz.ini';
 $config['svn']['authz_type'] = 'repository';
-$config['svn']['server'] = 'https://10.30.130.223/svn/';
+$config['svn']['server'] = 'https://localhost/svn/';

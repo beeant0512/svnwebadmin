@@ -8,10 +8,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>SVN Web Admin</title>
+<!--    <link rel="stylesheet" href="--><?php //echo base_url('_static/select2/css/select2.min.css') ?><!--">-->
     <link rel="stylesheet" href="<?php echo base_url('_static/sui/semantic.min.css') ?>">
     <link rel="stylesheet" href="<?php echo base_url('_static/style.css') ?>">
     <script src="<?php echo base_url('_static/jquery.min.js'); ?>"></script>
     <script src="<?php echo base_url('_static/sui/semantic.min.js'); ?>"></script>
+<!--    <script src="--><?php //echo base_url('_static/select2/js/select2.full.min.js'); ?><!--"></script>-->
+<!--    <script src="--><?php //echo base_url('_static/select2/js/i18n/zh-CN.js'); ?><!--"></script>-->
 </head>
 <body>
 <div class="ui fixed inverted menu">
