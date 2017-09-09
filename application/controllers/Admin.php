@@ -68,6 +68,12 @@ class Admin extends CI_Controller
         $this->svn->create_repository($repo_name);
     }
 
+    public function create_user(){
+        $account = $this->input->post('account');
+        $pwd = $this->input->post('pwd');
+        $this->svn->create_user($account, $pwd);
+    }
+
     public function change_pwd()
     {
         echo 'Hello World!';

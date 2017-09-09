@@ -117,7 +117,7 @@ class Svn
 
     public function create_user($username, $password)
     {
-        exec('htpasswd -b ' . $this->config['htpasswd_file'] . $username . ' ' . $password);
+        exec('htpasswd -b ' . $this->config['htpasswd_file'] . ' ' . $username . ' ' . $password);
     }
 
     public function set_authorities($users, $rights, $repository, $folder_path)
@@ -135,6 +135,7 @@ class Svn
                 foreach ($users as $index => $user) {
                     $user_rights[$user] = $rights;
                 }
+                $svn_auth_rights[$folder] = $user_rights;
             }
         }
 
