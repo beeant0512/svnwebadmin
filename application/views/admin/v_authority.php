@@ -71,6 +71,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <?php } ?>
                     </select>
                 </div>
+                <div class="field">
+                    <label>权限</label>
+                    <select name="rights" id="authority_rights_select" class="ui dropdown">
+                        <option value=""> -- 请选择权限 --</option>
+                        <option value="-"> 不可访问</option>
+                        <option value="r"> 只读</option>
+                        <option value="rw"> 读写</option>
+                    </select>
+                </div>
                 <div class="ui error message"></div>
             </form>
         </div>
@@ -116,7 +125,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         method: 'post',
                                         async: false,
                                         url: '<?php echo site_url('admin/set_user_authority')?>',
-                                        data: {users: $form.form('get value', 'users'), folder: folder},
+                                        data: {
+                                            users: $form.form('get value', 'users'),
+                                            rights: $form.form('get value', 'rights'),
+                                            folder: folder
+                                        },
                                         success: function () {
                                             created = true;
                                             closable = true;

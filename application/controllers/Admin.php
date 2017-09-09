@@ -52,6 +52,17 @@ class Admin extends CI_Controller
         $this->load->view('admin/v_authority', $data);
     }
 
+    public function set_user_authority(){
+        $folder = $this->input->post('folder');
+        $users = $this->input->post('users');
+        $rights = $this->input->post('rights');
+        $position = strpos($folder,":");
+        $repo_name = substr($folder,0,$position);
+        $folder_path = substr($folder,$position+1);
+
+        $this->svn->set_authorities($users, $rights, $repo_name, $folder_path);
+    }
+
     public function create_repo(){
         $repo_name = $this->input->post('repo');
         $this->svn->create_repository($repo_name);
