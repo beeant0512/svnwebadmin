@@ -94,6 +94,30 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         </div>
     </div>
 
+    <div class="ui modal" id="view_authority_modal">
+        <i class="close icon"></i>
+        <div class="header">
+            <label id="repo_folder"></label> 用户权限
+        </div>
+        <div class="content">
+            <table class="ui celled table">
+                <thead>
+                <tr>
+                    <th>SVN账户</th>
+                    <th>权限</th>
+                </tr>
+                </thead>
+                <tbody id="user_authority_tbody">
+
+                </tbody>
+            </table>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">
+                关闭
+            </div>
+        </div>
+    </div>
     <p class="footer">Page rendered in <strong>{elapsed_time}</strong>
         seconds. <?php echo (ENVIRONMENT === 'development') ? 'CodeIgniter Version <strong>' . CI_VERSION . '</strong>' : '' ?>
     </p>
@@ -112,14 +136,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
                 $('.view_authority').on('click', function () {
                     var folder = $(this).data('folder');
+                    $('#repo_folder').html(folder);
                     $modal = $('#view_authority_modal');
                     $.ajax({
                         method: 'post',
                         async: false,
                         url: '<?php echo site_url('admin/get_folder_authority_users')?>',
                         data: {folder: folder},
-                        success: function () {
-                            closable = true;
+                        success: function (users) {
+                            var tr = '';
+                            $.each(users, function (user, rights) {
+                                tr += '<tr><td>' + user + '</td><td>' + rights + '</td></tr>';
+                            });
+                            $('#user_authority_tbody').html(tr);
                         }
                     });
                     $modal.modal('show');

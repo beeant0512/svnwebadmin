@@ -120,20 +120,33 @@ class Svn
         exec('htpasswd -b ' . $this->config['htpasswd_file'] . ' ' . $username . ' ' . $password);
     }
 
-    public function get_folder_authority_users($repo, $folder_path){
+    public function get_folder_authority_users($repo, $folder_path)
+    {
         $folder_path_size = sizeof($folder_path);
         if (substr($folder_path, $folder_path_size - 2) == '/') {
             $folder_path = substr($folder_path, 0, $folder_path_size - 2);
         }
+        $folder_level = substr_count($folder_path, "/");
         $svn_auth_file = $this->config['repositories_path'] . '\\' . $repo . '\\conf\\' . $this->config['authz_file'];
         $svn_auth_rights = $this->read_ini_file($svn_auth_file);
         $users = array();
         foreach ($svn_auth_rights as $folder => $user_rights) {
-            if ($folder == $folder_path) {
-                $svn_auth_rights[$folder] = $user_rights;
+            $loop_folder_level = substr_count($folder, "/");
+            if ($folder != "/" and ($loop_folder_level > $folder_level || ($loop_folder_level == $folder_level && $folder != $folder_path))) {
+                continue;
+            }
+
+            foreach ($user_rights as $user => $rights) {
+                $users[$user] = $rights == "" ? "-" : $rights;
+            }
+            if ($folder == $folder_path || ($folder == "/" and $folder_path == "")) {
+                break;
             }
         }
+
+        return $users;
     }
+
     public function set_authorities($users, $rights, $repository, $folder_path)
     {
         $folder_path_size = sizeof($folder_path);
@@ -179,7 +192,7 @@ class Svn
         foreach ($svn_auth_rights as $folder => $user_rights) {
             $contents .= "[" . $folder . "]" . $this->new_line;
             foreach ($user_rights as $user => $rights) {
-                if($rights == "-"){
+                if ($rights == "-") {
                     $contents .= $user . "=" . $this->new_line;
                 } else {
                     $contents .= $user . "=" . $rights . $this->new_line;

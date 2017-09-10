@@ -73,6 +73,9 @@ class Admin extends CI_Controller
         $repo_name = substr($folder, 0, $position);
         $folder_path = substr($folder, $position + 1);
         $users = $this->svn->get_folder_authority_users($repo_name, $folder_path);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($users));
     }
 
     public function create_repo()
