@@ -110,6 +110,21 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         }
                     });
 
+                $('.view_authority').on('click', function () {
+                    var folder = $(this).data('folder');
+                    $modal = $('#view_authority_modal');
+                    $.ajax({
+                        method: 'post',
+                        async: false,
+                        url: '<?php echo site_url('admin/get_folder_authority_users')?>',
+                        data: {folder: folder},
+                        success: function () {
+                            closable = true;
+                        }
+                    });
+                    $modal.modal('show');
+                });
+
                 $('.set_authority').on('click', function () {
                     var created = false,
                         folder = $(this).data('folder');

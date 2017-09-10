@@ -4,6 +4,7 @@ class Admin extends CI_Controller
 {
     var $data = array();
     var $svn_server;
+
     function __construct()
     {
         // Call the Controller constructor
@@ -42,7 +43,8 @@ class Admin extends CI_Controller
         $this->load->view('admin/v_users', $data);
     }
 
-    public function authority(){
+    public function authority()
+    {
         $repo_name = $this->input->get('repo');
         $repo_tree = $this->svn->get_repo_tree($repo_name);
         $data['users'] = $this->svn->get_users();
@@ -52,23 +54,35 @@ class Admin extends CI_Controller
         $this->load->view('admin/v_authority', $data);
     }
 
-    public function set_user_authority(){
+    public function set_user_authority()
+    {
         $folder = $this->input->post('folder');
         $users = $this->input->post('users');
         $rights = $this->input->post('rights');
-        $position = strpos($folder,":");
-        $repo_name = substr($folder,0,$position);
-        $folder_path = substr($folder,$position+1);
+        $position = strpos($folder, ":");
+        $repo_name = substr($folder, 0, $position);
+        $folder_path = substr($folder, $position + 1);
 
         $this->svn->set_authorities($users, $rights, $repo_name, $folder_path);
     }
 
-    public function create_repo(){
+    public function get_folder_authority_users()
+    {
+        $folder = $this->input->post('folder');
+        $position = strpos($folder, ":");
+        $repo_name = substr($folder, 0, $position);
+        $folder_path = substr($folder, $position + 1);
+        $users = $this->svn->get_folder_authority_users($repo_name, $folder_path);
+    }
+
+    public function create_repo()
+    {
         $repo_name = $this->input->post('repo');
         $this->svn->create_repository($repo_name);
     }
 
-    public function create_user(){
+    public function create_user()
+    {
         $account = $this->input->post('account');
         $pwd = $this->input->post('pwd');
         $this->svn->create_user($account, $pwd);
