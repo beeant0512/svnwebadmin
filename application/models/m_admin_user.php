@@ -8,6 +8,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  */
 class M_admin_user extends CI_Model
 {
+    protected $users;
     var $table = 'svn_admin_user';
     var $max_idle_time = 300; // allowed idle time in secs, 300 secs = 5 minute
 
@@ -15,6 +16,7 @@ class M_admin_user extends CI_Model
     {
         parent::__construct();
         // Your own constructor code
+        $this->users = $this->config->config['svn']['admin'];
     }
 
     // Save a new user.
@@ -37,9 +39,7 @@ class M_admin_user extends CI_Model
 
     public function get_by_account($account)
     {
-        $query = $this->db->get_where($this->table, array('account' => $account), 1);
-        if ($query->num_rows() > 0) return $query->row_array();
-        return false;
+        return $this->users[$account];
     }
 
     // Check if user is logged in and update session
@@ -111,8 +111,6 @@ class M_admin_user extends CI_Model
     // Check if password is valid
     function check_password($password, $hashed_password)
     {
-        list($salt, $hash) = explode('.', $hashed_password);
-        $hashed2 = $salt . '.' . md5($salt . $password);
-        return ($hashed_password == $hashed2);
+        return md5($password) == $hashed_password;
     }
 }

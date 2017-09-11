@@ -13,20 +13,35 @@ class Admin extends CI_Controller
         $this->svn_server = $svn_config['server'];
         $this->load->model('m_admin_user');
         $isLoginPage = uri_string(current_url()) == 'admin/login';
-//        if(!$isLoginPage){
-//            if ($this->m_admin_user->is_logged_in() === FALSE) {
-//                $this->m_admin_user->remove_pass();
-//                redirect('admin/login');
-//            } else {
-//                // is_logged_in also put user data in session
-//                $this->data['user'] = $this->session->userdata('user');
-//            }
-//        }
+        if (!$isLoginPage) {
+            if ($this->m_admin_user->is_logged_in() === FALSE) {
+                $this->m_admin_user->remove_pass();
+                redirect('admin/login');
+            } else {
+                // is_logged_in also put user data in session
+                $this->data['user'] = $this->session->userdata('user');
+            }
+        }
     }
 
     public function login()
     {
-        $this->load->view('admin/v_login');
+        if ($this->input->post() != null) {
+            $user = $this->m_admin_user->get_by_account($this->input->post('usr'));
+            if ($user != null) {
+                $check_result = $this->m_admin_user->check_password($this->input->post('pwd'), $user['pwd']);
+                if ($check_result) {
+                    $this->m_admin_user->allow_pass($user);
+                    redirect('admin/index');
+                } else {
+                    $this->load->view('admin/v_login');
+                }
+            } else {
+                $this->load->view('admin/v_login');
+            }
+        } else {
+            $this->load->view('admin/v_login');
+        }
     }
 
 
