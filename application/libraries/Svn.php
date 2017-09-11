@@ -55,6 +55,7 @@ class Svn
 
     /**
      * 获取用户权限
+     * get user's authorities
      *
      * @param $username
      * @return array
@@ -126,21 +127,26 @@ class Svn
         if (substr($folder_path, $folder_path_size - 2) == '/') {
             $folder_path = substr($folder_path, 0, $folder_path_size - 2);
         }
-        $folder_level = substr_count($folder_path, "/");
+
+        $explode_folder = explode("/", $folder_path);
+        $explode_folder_size = sizeof($explode_folder);
+        for ($index = 0; $index < $explode_folder_size; $index++) {
+            if ($index == 0) {
+                continue;
+            }
+
+            $explode_folder[$index] = $explode_folder[$index - 1] . "/" .$explode_folder[$index];
+        }
+        $explode_folder[0] = "/";
+        $folder_level = $explode_folder_size - 1;
         $svn_auth_file = $this->config['repositories_path'] . '\\' . $repo . '\\conf\\' . $this->config['authz_file'];
         $svn_auth_rights = $this->read_ini_file($svn_auth_file);
         $users = array();
         foreach ($svn_auth_rights as $folder => $user_rights) {
-            $loop_folder_level = substr_count($folder, "/");
-            if ($folder != "/" and ($loop_folder_level > $folder_level || ($loop_folder_level == $folder_level && $folder != $folder_path))) {
-                continue;
-            }
-
-            foreach ($user_rights as $user => $rights) {
-                $users[$user] = $rights == "" ? "-" : $rights;
-            }
-            if ($folder == $folder_path || ($folder == "/" and $folder_path == "")) {
-                break;
+            if (in_array($folder, $explode_folder)) {
+                foreach ($user_rights as $user => $rights) {
+                    $users[$user] = $rights == "" ? "-" : $rights;
+                }
             }
         }
 
@@ -248,27 +254,6 @@ class Svn
     }
 
     /**
-     * proplist (plist, pl): usage: 1. svnlook proplist REPOS_PATH PATH_IN_REPOS
-     * 2. svnlook proplist --revprop REPOS_PATH
-     *
-     * List the properties of a path in the repository, or
-     * with the --revprop option, revision properties.
-     * With -v, show the property values too.
-     *
-     * Valid options:
-     * -r [--revision] ARG      : specify revision number ARG
-     * -t [--transaction] ARG   : specify transaction name ARG
-     * -v [--verbose]           : be verbose
-     * --revprop                : operate on a revision property (use with -r or -t)
-     * --xml                    : output in XML
-     * --show-inherited-props   : show path's inherited properties
-     */
-    public function proplist()
-    {
-
-    }
-
-    /**
      * tree: usage: svnlook tree REPOS_PATH [PATH_IN_REPOS]
      *
      * Print the tree, starting at PATH_IN_REPOS (if supplied, at the root
@@ -313,8 +298,7 @@ class Svn
         return $res_ary[0];
     }
 
-    private
-    function get_repo_full_path($repo_name)
+    private function get_repo_full_path($repo_name)
     {
         return $this->config['repositories_path'] . '\\' . $repo_name;
     }
