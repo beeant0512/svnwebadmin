@@ -109,6 +109,10 @@ $config['svn']['group_file'] = 'F:\\Repositories\\groups.conf';
 $config['svn']['authz_file'] = 'VisualSVN-SvnAuthz.ini';
 $config['svn']['authz_type'] = 'repository';
 $config['svn']['server'] = 'https://10.30.130.223/svn/';
+
+$config['svn']['folder_ignore'] = array(
+    '.idea/', '.metadata/', ".settings/", "bin/", "gen/");
+
 $config['svn']['admin'] = array(
     'admin' => array('name' => 'admin', 'pwd' => '21232f297a57a5a743894a0e4a801fc3', 'role' => 'super')
 );

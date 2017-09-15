@@ -27,4 +27,4 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <a href="<?php echo site_url('admin/users') ?>" class="item">用户管理</a>
     </div>
 </div>
-<div id="container" class="ui main text container">
+<div id="container" class="ui main container">

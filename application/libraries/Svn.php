@@ -121,6 +121,13 @@ class Svn
         return $userRights;
     }
 
+    public function get_group_users($group_name)
+    {
+        $groups = self::read_ini_file($this->config['group_file']);
+        $groupAs = $groups['groups'];
+        return explode(",", $groupAs[$group_name]);
+    }
+
     public function create_user($username, $password)
     {
         $this->log->info('create svn account：' . $username);
@@ -144,14 +151,20 @@ class Svn
             $explode_folder[$index] = $explode_folder[$index - 1] . "/" . $explode_folder[$index];
         }
         $explode_folder[0] = "/";
-        $folder_level = $explode_folder_size - 1;
         $svn_auth_file = $this->config['repositories_path'] . '\\' . $repo . '\\conf\\' . $this->config['authz_file'];
         $svn_auth_rights = $this->read_ini_file($svn_auth_file);
         $users = array();
         foreach ($svn_auth_rights as $folder => $user_rights) {
             if (in_array($folder, $explode_folder)) {
                 foreach ($user_rights as $user => $rights) {
-                    $users[$user] = $rights == "" ? "-" : $rights;
+                    if (stripos($user, "@") !== false) {
+                        $group_users = $this->get_group_users(substr($user, 1));
+                        foreach ($group_users as $group_member) {
+                            $users[$group_member] = $rights == "" ? "-" : $rights;
+                        }
+                    } else {
+                        $users[$user] = $rights == "" ? "-" : $rights;
+                    }
                 }
             }
         }
@@ -189,7 +202,8 @@ class Svn
         $this->write_svn_authz($svn_auth_file, $svn_auth_rights);
     }
 
-    private function write_svn_authz($file, $svn_auth_rights)
+    private
+    function write_svn_authz($file, $svn_auth_rights)
     {
         $handle = fopen($file, "w + ");//读取二进制文件时，需要将第二个参数设置成'rb'
         //通过filesize获得文件大小，将整个文件一下子读到一个字符串中
@@ -217,12 +231,14 @@ class Svn
         fclose($handle);
     }
 
-    public function is_repository($path)
+    public
+    function is_repository($path)
     {
         return is_dir($path);
     }
 
-    public function create_repository($reponame, $type = '')
+    public
+    function create_repository($reponame, $type = '')
     {
         $this->log->info("create repository " . $reponame);
         $command = $this->config['svnadmin'] . ' create ' . $this->config['repositories_path'] . '\\' . $reponame;
@@ -236,7 +252,8 @@ class Svn
      * @return array
      * @throws Exception
      */
-    public function list_repositories()
+    public
+    function list_repositories()
     {
         $basePath = $this->config['repositories_path'];
         if (!file_exists($basePath)) {
@@ -274,30 +291,39 @@ class Svn
      * --show-ids               : show node revision ids for each path
      * --full-paths             : show full paths instead of indenting them
      */
-    public function get_repo_tree($repo_name)
+    public
+    function get_repo_tree($repo_name)
     {
+        header("Content-type:text/html; charset=utf-8");
         // $command = $this->svnlook . ' tree ' .  $this->getRepoFullPath($repo_name);
+        exec('chcp 65001');
         $command = 'svnlook tree ' . $this->get_repo_full_path($repo_name);
         exec($command, $res);
         $res_ary = array();
         foreach ($res as $index => $folder) {
             $level = substr_count($folder, ' ');
-            $folder_name = trim($folder);
-            $source_folder_name = $folder;
-            $folder = new stdClass();
-            $folder->level = $level;
-            $folder->name = $source_folder_name;
-            $folder->fullpath = $folder_name;
-            $folder->child = array();
-            array_push($res_ary, $folder);
+            if (stripos($folder, "/") !== false) {
+                $folder = iconv('GB2312', 'utf-8', $folder);
+                $folder_name = trim($folder);
+
+                $source_folder_name = $folder;
+                $folder = new stdClass();
+                $folder->level = $level;
+                $folder->name = $source_folder_name;
+                $folder->fullpath = $folder_name;
+                $folder->child = array();
+                array_push($res_ary, $folder);
+            }
         }
         foreach ($res_ary as $index => $folder_info) {
-            $in_loop = true;
             foreach ($res_ary as $index2 => $sub_folder_info) {
                 if ($folder_info->level == $sub_folder_info->level && $index2 > $index) {
                     break;
                 }
                 if ($sub_folder_info->level == $folder_info->level + 1 && $index2 > $index) {
+                    if (in_array($sub_folder_info->fullpath, $this->config['folder_ignore'])) {
+                        continue;
+                    }
                     $sub_folder_info->fullpath = $folder_info->fullpath . $sub_folder_info->fullpath;
                     array_push($folder_info->child, $sub_folder_info);
                 }
@@ -306,7 +332,8 @@ class Svn
         return $res_ary[0];
     }
 
-    private function get_repo_full_path($repo_name)
+    private
+    function get_repo_full_path($repo_name)
     {
         return $this->config['repositories_path'] . '\\' . $repo_name;
     }
